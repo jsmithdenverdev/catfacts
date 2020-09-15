@@ -2,13 +2,14 @@ package app
 
 import (
 	"fmt"
-	"gitlab.com/jsmithdenverdev/catfacts/internal"
+	"gitlab.com/jsmithdenverdev/catfacts/internal/subscriber"
+	"gitlab.com/jsmithdenverdev/catfacts/internal/twilio"
 	"log"
 	"net/http"
 )
 
 type manageSubscriptionHandler struct {
-	service internal.SubscriberService
+	service subscriber.SubscriberService
 }
 
 func (h manageSubscriptionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +113,7 @@ func getTwilioAction(body string) TwilioOp {
 func writeTwiml(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "text/xml")
 
-	response, err := internal.GenerateTwimlResponse(message)
+	response, err := twilio.GenerateTwimlResponse(message)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

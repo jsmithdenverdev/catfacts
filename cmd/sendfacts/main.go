@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"gitlab.com/jsmithdenverdev/catfacts/internal"
+	"gitlab.com/jsmithdenverdev/catfacts/internal/subscriber"
 	"log"
 	"os"
 )
@@ -18,7 +19,7 @@ func createApp() (app, error) {
 	dataSource := os.Getenv("DATA_SOURCE")
 
 	// create a new sqlite subscriber store
-	store, err := internal.NewSqliteSubscriberStore(dataSource)
+	store, err := subscriber.NewSqliteSubscriberStore(dataSource)
 
 	if err != nil {
 		return app{}, fmt.Errorf("could not create app: %w", err)

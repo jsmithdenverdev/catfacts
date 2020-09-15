@@ -1,4 +1,4 @@
-package internal
+package twilio
 
 import (
 	"encoding/xml"
