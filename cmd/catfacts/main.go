@@ -2,21 +2,21 @@ package main
 
 import (
 	"fmt"
-	app2 "gitlab.com/jsmithdenverdev/catfacts/internal/app"
+	"gitlab.com/jsmithdenverdev/catfacts/cmd/catfacts/app"
 	"log"
 	"net/http"
 )
 
 func run() error {
-	a, err := app2.CreateApp()
+	a, err := app.CreateApp()
 
 	if err != nil {
 		return fmt.Errorf("could not create app: %w", err)
 	}
 
-	r := CreateRouter(a)
+	r := app.CreateRouter(a)
 
-	err = http.ListenAndServe(":8080", r)
+	err = http.ListenAndServe(":5520", r)
 
 	if err != nil {
 		return fmt.Errorf("could not start http server: %w", err)

@@ -1,30 +1,17 @@
-package main
+package app
 
 import (
-	"catfacts/internal/app"
 	"fmt"
 	"gitlab.com/jsmithdenverdev/catfacts/internal"
 	"log"
 	"net/http"
 )
 
-func (a app.App) SendFactToSubscribers(w http.ResponseWriter, r *http.Request) {
-	err := a.FactService.DistributeToSubscribers()
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+type manageSubscriptionHandler struct {
+	service internal.SubscriberService
 }
 
-type TwilioOp = string
-
-const (
-	OptOut    TwilioOp = "OPTOUT"
-	OptIn     TwilioOp = "OPTIN"
-	InvalidOp TwilioOp = "INVALID"
-)
-
-func (a app.App) ManageSubscription(w http.ResponseWriter, r *http.Request) {
+func (h manageSubscriptionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	// parse the post form
 	err = r.ParseForm()
@@ -47,7 +34,7 @@ func (a app.App) ManageSubscription(w http.ResponseWriter, r *http.Request) {
 	switch getTwilioAction(operation) {
 	case OptIn:
 		// create the subscriber
-		err = a.SubscriberService.CreateSubscriber(contact)
+		err = h.service.CreateSubscriber(contact)
 
 		// return an error if creation failed
 		if err != nil {
@@ -59,7 +46,7 @@ func (a app.App) ManageSubscription(w http.ResponseWriter, r *http.Request) {
 		writeTwiml(w, "Meow! Welcome to CatFacts! =^._.^=")
 	case OptOut:
 		// delete the subscriber
-		err = a.SubscriberService.DeleteSubscriber(contact)
+		err = h.service.DeleteSubscriber(contact)
 
 		// return an error if deleting failed
 		if err != nil {
@@ -78,6 +65,14 @@ func (a app.App) ManageSubscription(w http.ResponseWriter, r *http.Request) {
 		writeTwiml(w, "Meow! That request was not understood. =^._.^=")
 	}
 }
+
+type TwilioOp = string
+
+const (
+	OptOut    TwilioOp = "OPTOUT"
+	OptIn     TwilioOp = "OPTIN"
+	InvalidOp TwilioOp = "INVALID"
+)
 
 func getTwilioAction(body string) TwilioOp {
 	// optOut and optIn taken from
@@ -129,4 +124,3 @@ func writeTwiml(w http.ResponseWriter, message string) {
 		log.Fatalf("could not write twiml response: %s", err.Error())
 	}
 }
-

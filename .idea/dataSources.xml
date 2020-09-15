@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="subscribers" uuid="4e9bb53a-d015-4c46-b87b-1d393e587855">
+    <data-source source="LOCAL" name="catfacts" uuid="10cb9310-957c-4ac2-aa05-82f6a083f50e">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/bin/subscribers.db</jdbc-url>
-    </data-source>
-    <data-source source="LOCAL" name="catfacts" uuid="edda3a90-c9c9-4cd8-a368-4501bfe183b6">
-      <driver-ref>sqlite.xerial</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/catfacts.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/bin/catfacts.db</jdbc-url>
     </data-source>
   </component>
 </project>
