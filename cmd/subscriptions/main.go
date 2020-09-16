@@ -2,21 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/jsmithdenverdev/catfacts/cmd/catfacts/app"
 	"log"
 	"net/http"
 )
 
 func run() error {
-	a, err := app.CreateApp()
+	a, err := createApp()
 
 	if err != nil {
 		return fmt.Errorf("could not create app: %w", err)
 	}
 
-	r := app.CreateRouter(a)
+	r := createRouter(a)
 
-	err = http.ListenAndServe(":5520", r)
+	err = http.ListenAndServe(":8080", r)
 
 	if err != nil {
 		return fmt.Errorf("could not start http server: %w", err)

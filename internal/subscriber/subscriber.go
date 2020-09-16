@@ -6,7 +6,7 @@ import (
 // Contact is a string representing a phone number.
 type Contact = string
 
-// Subscriber represents a subscriber for catfacts. A subscriber has a single field. Contact which represents the
+// Subscriber represents a subscriber for subscriptions. A subscriber has a single field. Contact which represents the
 // subscribers phone number.
 type Subscriber struct {
 	Contact Contact

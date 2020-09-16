@@ -1,4 +1,4 @@
-package app
+package main
 
 import (
 	"github.com/gorilla/handlers"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func CreateRouter(a App) http.Handler {
+func createRouter(a app) http.Handler {
 	router := mux.NewRouter()
 
 	router.Handle("/subscribers", manageSubscriptionHandler{

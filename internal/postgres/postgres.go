@@ -65,7 +65,7 @@ func (s subscriberStore) List() ([]subscriber.Subscriber, error) {
 }
 
 func (s subscriberStore) Delete(contact subscriber.Contact) error {
-	_, err := s.db.Exec("DELETE FROM subscriber WHERE contact = ?", contact)
+	_, err := s.db.Exec("DELETE FROM subscriber WHERE contact = $1", contact)
 
 	if err != nil {
 		return fmt.Errorf("could not Delete subscriber from database: %w", err)
@@ -84,10 +84,14 @@ func NewSubscriberStore(dataSourceName string) (subscriber.Store, error) {
 	}
 
 	// initialize the db
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS subscriber (" +
-		"id INTEGER PRIMARY KEY," +
-		"contact TEXT NOT NULL" +
-		")")
+	create := `CREATE TABLE IF NOT EXISTS subscriber (
+		contact TEXT,
+		id SERIAL NOT NULL
+			CONSTRAINT subscriber_pk
+			PRIMARY KEY
+	);`
+
+	_, err = db.Exec(create)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not initalize subscriber table: %w", err)
