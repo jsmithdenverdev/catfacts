@@ -1,9 +1,9 @@
-package sqlite3
+package postgres
 
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jsmithdenverdev/catfacts/internal/subscriber"
 )
 
@@ -77,7 +77,7 @@ func (s subscriberStore) Delete(contact subscriber.Contact) error {
 //NewSubscriberStore opens a connection to the given sqlite data source, initializes the database and returns a
 // subscriber.Store to interact with the database.
 func NewSubscriberStore(dataSourceName string) (subscriber.Store, error) {
-	db, err := sql.Open("sqlite3", dataSourceName)
+	db, err := sql.Open("pgx", dataSourceName)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not open sqlite3 connection: %w", err)

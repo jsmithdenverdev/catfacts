@@ -1,36 +1,44 @@
 package twilio
 
-import (
-	"fmt"
-	"github.com/sfreiberg/gotwilio"
-	"gitlab.com/jsmithdenverdev/catfacts/internal/fact"
-	"gitlab.com/jsmithdenverdev/catfacts/internal/subscriber"
+type Operation = string
+
+const (
+	OptOut        Operation = "OPTOUT"
+	OptIn         Operation = "OPTIN"
+	InvalidAction Operation = "INVALID"
 )
 
-type twilioFactSender struct {
-	client *gotwilio.Twilio
-	from   string
-}
-
-func (t *twilioFactSender) Send(c subscriber.Contact, f fact.Fact) error {
-	_, exception, err := t.client.SendSMS(t.from, c, f, "", "")
-
-	if exception != nil {
-		return fmt.Errorf("could not send fact with twilio: %w", exception)
+func GetTwilioAction(body string) Operation {
+	// optOut and optIn taken from
+	// https://support.twilio.com/hc/en-us/articles/223134027-Twilio-support-for-opt-out-keywords-SMS-STOP-filtering-
+	optOut := []string{
+		"STOP",
+		"STOPALL",
+		"UNSUBSCRIBE",
+		"CANCEL",
+		"END",
+		"QUIT",
+	}
+	optIn := []string{
+		"START",
+		"YES",
+		"UNSTOP",
 	}
 
-	if err != nil {
-		return fmt.Errorf("could not send fact with twilio: %w", err)
+	// check for opt out values
+	for _, value := range optOut {
+		if body == value {
+			return OptOut
+		}
 	}
 
-	return nil
-}
-
-func NewFactSender(sid string, token string, from string) fact.Sender {
-	client := gotwilio.NewTwilioClient(sid, token)
-
-	return &twilioFactSender{
-		client,
-		from,
+	// check for opt in values
+	for _, value := range optIn {
+		if body == value {
+			return OptIn
+		}
 	}
+
+	// if there are no matches return invalid operation
+	return InvalidAction
 }

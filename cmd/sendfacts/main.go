@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"gitlab.com/jsmithdenverdev/catfacts/internal"
-	"gitlab.com/jsmithdenverdev/catfacts/internal/subscriber"
+	"github.com/jsmithdenverdev/catfacts/internal/fact"
+	"github.com/jsmithdenverdev/catfacts/internal/sqlite3"
+	"github.com/jsmithdenverdev/catfacts/internal/twilio"
 	"log"
 	"os"
 )
 
 type app struct {
-	factService internal.FactService
+	factService fact.Service
 }
 
 func createApp() (app, error) {
@@ -19,17 +20,14 @@ func createApp() (app, error) {
 	dataSource := os.Getenv("DATA_SOURCE")
 
 	// create a new sqlite subscriber store
-	store, err := subscriber.NewSqliteSubscriberStore(dataSource)
+	store, err := sqlite3.NewSubscriberStore(dataSource)
 
 	if err != nil {
 		return app{}, fmt.Errorf("could not create app: %w", err)
 	}
 
-	loader := internal.NewApiFactLoader()
-	distributor := internal.NewTwilioDistributor(twilioSid, twilioToken, twilioFrom)
-
-	// create services
-	factService := internal.NewFactService(store, loader, distributor)
+	sender := twilio.NewFactSender(twilioSid, twilioToken, twilioFrom)
+	factService := fact.NewService(store, sender)
 
 	// create app
 	return app{factService}, nil
@@ -42,10 +40,10 @@ func run() error {
 		return fmt.Errorf("could not create app: %w", err)
 	}
 
-	err = app.factService.SendFactToSubscribers()
+	err = app.factService.SendFactToSubscribers(fact.RetrieveFactFromApi)
 
 	if err != nil {
-		return fmt.Errorf("could not send fact to subscribers")
+		return fmt.Errorf("could not send fact to subscribers: %w", err)
 	}
 
 	return nil

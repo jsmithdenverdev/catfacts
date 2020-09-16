@@ -1,6 +1,6 @@
 package fact
 
-import "gitlab.com/jsmithdenverdev/catfacts/internal/subscriber"
+import "github.com/jsmithdenverdev/catfacts/internal/subscriber"
 
 type Fact = string
 

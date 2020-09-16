@@ -3,13 +3,15 @@ package twilio
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
+	"net/http"
 )
 
 type Response struct {
 	Message string `xml:"Message>Body"`
 }
 
-func GenerateTwimlResponse(message string) ([]byte, error) {
+func generateTwimlResponse(message string) ([]byte, error) {
 
 	response := Response{
 		Message: message,
@@ -22,4 +24,20 @@ func GenerateTwimlResponse(message string) ([]byte, error) {
 	}
 
 	return x, nil
+}
+
+func WriteTwiml(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "text/xml")
+
+	response, err := generateTwimlResponse(message)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	_, err = w.Write(response)
+
+	if err != nil {
+		log.Fatalf("could not write twiml response: %s", err.Error())
+	}
 }

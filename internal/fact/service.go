@@ -3,7 +3,7 @@ package fact
 import (
 	"errors"
 	"fmt"
-	"gitlab.com/jsmithdenverdev/catfacts/internal/subscriber"
+	"github.com/jsmithdenverdev/catfacts/internal/subscriber"
 )
 
 type Service struct {

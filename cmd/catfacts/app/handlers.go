@@ -2,14 +2,13 @@ package app
 
 import (
 	"fmt"
-	"gitlab.com/jsmithdenverdev/catfacts/internal/subscriber"
-	"gitlab.com/jsmithdenverdev/catfacts/internal/twilio"
-	"log"
+	"github.com/jsmithdenverdev/catfacts/internal/subscriber"
+	"github.com/jsmithdenverdev/catfacts/internal/twilio"
 	"net/http"
 )
 
 type manageSubscriptionHandler struct {
-	service subscriber.SubscriberService
+	service subscriber.Service
 }
 
 func (h manageSubscriptionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -31,9 +30,9 @@ func (h manageSubscriptionHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "could not create subscriber: malformed twilio request: missing parameter From", http.StatusBadRequest)
 	}
 
-	// perform switch logic on the twilio action (OptIn, OptOut, or InvalidOp)
-	switch getTwilioAction(operation) {
-	case OptIn:
+	// perform switch logic on the twilio action (OptIn, OptOut, or InvalidAction)
+	switch twilio.GetTwilioAction(operation) {
+	case twilio.OptIn:
 		// create the subscriber
 		err = h.service.CreateSubscriber(contact)
 
@@ -44,8 +43,8 @@ func (h manageSubscriptionHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		}
 
 		// write a twiml response
-		writeTwiml(w, "Meow! Welcome to CatFacts! =^._.^=")
-	case OptOut:
+		twilio.WriteTwiml(w, "Meow! Welcome to CatFacts! =^._.^=. Cancel your subscription at any time by replying STOP.")
+	case twilio.OptOut:
 		// delete the subscriber
 		err = h.service.DeleteSubscriber(contact)
 
@@ -56,72 +55,13 @@ func (h manageSubscriptionHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		}
 
 		// write a twiml response
-		writeTwiml(w, "Meow! Farewell from CatFacts! =^._.^=")
-	case InvalidOp:
+		twilio.WriteTwiml(w, "Meow! Farewell from CatFacts! =^._.^=")
+	case twilio.InvalidAction:
 		// create and return an invalid operation error
 		err = fmt.Errorf("request not understood")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 
 		// write a twiml response
-		writeTwiml(w, "Meow! That request was not understood. =^._.^=")
-	}
-}
-
-type TwilioOp = string
-
-const (
-	OptOut    TwilioOp = "OPTOUT"
-	OptIn     TwilioOp = "OPTIN"
-	InvalidOp TwilioOp = "INVALID"
-)
-
-func getTwilioAction(body string) TwilioOp {
-	// optOut and optIn taken from
-	// https://support.twilio.com/hc/en-us/articles/223134027-Twilio-support-for-opt-out-keywords-SMS-STOP-filtering-
-	optOut := []string{
-		"STOP",
-		"STOPALL",
-		"UNSUBSCRIBE",
-		"CANCEL",
-		"END",
-		"QUIT",
-	}
-	optIn := []string{
-		"START",
-		"YES",
-		"UNSTOP",
-	}
-
-	// check for opt out values
-	for _, value := range optOut {
-		if body == value {
-			return OptOut
-		}
-	}
-
-	// check for opt in values
-	for _, value := range optIn {
-		if body == value {
-			return OptIn
-		}
-	}
-
-	// if there are no matches return invalid operation
-	return InvalidOp
-}
-
-func writeTwiml(w http.ResponseWriter, message string) {
-	w.Header().Set("Content-Type", "text/xml")
-
-	response, err := twilio.GenerateTwimlResponse(message)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	_, err = w.Write(response)
-
-	if err != nil {
-		log.Fatalf("could not write twiml response: %s", err.Error())
+		twilio.WriteTwiml(w, "Meow! That request was not understood. =^._.^=")
 	}
 }

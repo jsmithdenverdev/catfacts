@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gitlab.com/jsmithdenverdev/catfacts/cmd/catfacts/app"
+	"github.com/jsmithdenverdev/catfacts/cmd/catfacts/app"
 	"log"
 	"net/http"
 )
