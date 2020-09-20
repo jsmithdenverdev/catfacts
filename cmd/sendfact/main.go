@@ -1,58 +1,33 @@
 package main
 
 import (
-	"fmt"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/jsmithdenverdev/catfacts/internal/aws/dynamodb"
 	"github.com/jsmithdenverdev/catfacts/internal/fact"
-	"github.com/jsmithdenverdev/catfacts/internal/sqlite3"
 	"github.com/jsmithdenverdev/catfacts/internal/twilio"
 	"log"
 	"os"
 )
 
-type app struct {
-	factService fact.Service
-}
-
-func createApp() (app, error) {
+func handler() error {
 	twilioSid := os.Getenv("TWILIO_SID")
 	twilioToken := os.Getenv("TWILIO_TOKEN")
 	twilioFrom := os.Getenv("TWILIO_FROM")
-	dataSource := os.Getenv("DATA_SOURCE")
+	table := os.Getenv("DYNAMODB_TABLE")
 
-	// create a new sqlite subscriber store
-	store, err := sqlite3.NewSubscriberStore(dataSource)
-
-	if err != nil {
-		return app{}, fmt.Errorf("could not create app: %w", err)
-	}
-
+	store := dynamodb.NewSubscriberStore(table)
 	sender := twilio.NewFactSender(twilioSid, twilioToken, twilioFrom)
-	factService := fact.NewService(store, sender)
+	service := fact.NewService(store, sender)
 
-	// create app
-	return app{factService}, nil
-}
-
-func run() error {
-	app, err := createApp()
+	err := service.SendFactToSubscribers(fact.RetrieveFromApi)
 
 	if err != nil {
-		return fmt.Errorf("could not create app: %w", err)
+		log.Print(err.Error())
 	}
 
-	err = app.factService.SendFactToSubscribers(fact.RetrieveFactFromApi)
-
-	if err != nil {
-		return fmt.Errorf("could not send fact to subscribers: %w", err)
-	}
-
-	return nil
+	return err
 }
 
 func main() {
-	err := run()
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	lambda.Start(handler)
 }

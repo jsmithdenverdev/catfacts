@@ -11,7 +11,7 @@ type Response struct {
 	Message string `xml:"Message>Body"`
 }
 
-func generateTwimlResponse(message string) ([]byte, error) {
+func GenerateTwiml(message string) ([]byte, error) {
 
 	response := Response{
 		Message: message,
@@ -29,7 +29,7 @@ func generateTwimlResponse(message string) ([]byte, error) {
 func WriteTwiml(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "text/xml")
 
-	response, err := generateTwimlResponse(message)
+	response, err := GenerateTwiml(message)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

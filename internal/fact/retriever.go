@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func RetrieveFactFromApi() (Fact, error) {
+func RetrieveFromApi() (Fact, error) {
 	type apiResponse struct {
 		Fact string `json:"fact"`
 	}

@@ -3,9 +3,8 @@ package twilio
 type Operation = string
 
 const (
-	OptOut        Operation = "OPTOUT"
-	OptIn         Operation = "OPTIN"
-	InvalidAction Operation = "INVALID"
+	OptOut Operation = "OPTOUT"
+	OptIn  Operation = "OPTIN"
 )
 
 func GetTwilioAction(body string) Operation {
@@ -39,6 +38,6 @@ func GetTwilioAction(body string) Operation {
 		}
 	}
 
-	// if there are no matches return invalid operation
-	return InvalidAction
+	// if there are no matches return empty
+	return ""
 }
