@@ -1,14 +1,8 @@
 package subscription
 
-import (
-	"errors"
-	"fmt"
-)
-
 type store interface {
 	Insert(sub Subscriber) error
 	Delete(contact string) error
-	All() ([]*Subscriber, error)
 }
 
 type Service struct {
@@ -35,38 +29,34 @@ func NewService(store store) Service {
 	}
 }
 
-func (s Service) Create(contact string) error {
-	if contact == "" {
-		return errors.New("empty contact supplied")
+func (s Service) ManageSMSSubscription(body, contact string) (Reply, error) {
+	action := GetAction(body)
+
+	switch action {
+	case ActionSubscribe:
+		subscriber := Subscriber{
+			Contact: contact,
+		}
+		if err := s.store.Insert(subscriber); err != nil {
+			if err == ErrSubscriptionExists {
+				return ReplyAlreadyExists, nil
+			} else {
+				return "", err
+			}
+		} else {
+			return ReplyWelcome, nil
+		}
+	case ActionUnsubscribe:
+		if err := s.store.Delete(contact); err != nil {
+			return "", nil
+		} else {
+			return ReplyGoodbye, nil
+		}
+	case ActionHelp:
+		return ReplyHelp, nil
+	case ActionUnknown:
+		return ReplyUnknown, nil
 	}
 
-	subscriber := Subscriber{
-		Contact: contact,
-	}
-
-	return s.store.Insert(subscriber)
-}
-
-func (s Service) Delete(contact string) error {
-	if contact == "" {
-		return errors.New("empty contact supplied")
-	}
-
-	err := s.store.Delete(contact)
-
-	if err != nil {
-		return fmt.Errorf("could not delete subscription from store: %w", err)
-	}
-
-	return nil
-}
-
-func (s Service) ListAll() ([]*Subscriber, error) {
-	results, err := s.store.All()
-
-	if err != nil {
-		return nil, fmt.Errorf("could not list subscriptions from store: %w", err)
-	}
-
-	return results, nil
+	return ReplyUnknown, nil
 }

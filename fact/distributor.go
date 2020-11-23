@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-type subscriberLister interface {
-	ListAll() ([]*subscription.Subscriber, error)
+type subscriberStore interface {
+	All() ([]*subscription.Subscriber, error)
 }
 
 type sender interface {
@@ -15,24 +15,24 @@ type sender interface {
 }
 
 type Distributor struct {
-	lister subscriberLister
+	store  subscriberStore
 	sender sender
 }
 
-type FactRetriever = func() (string, error)
+type Retriever = func() (string, error)
 
-func NewDistributor(lister subscriberLister, sender sender) Distributor {
+func NewDistributor(store subscriberStore, sender sender) Distributor {
 	return Distributor{
-		lister,
+		store,
 		sender,
 	}
 }
 
-func (d Distributor) DistributeFactToSubscribers(r FactRetriever) error {
+func (d Distributor) DistributeFactToSubscribers(r Retriever) error {
 	errs := make([]error, 0)
 	fact, err := r()
 
-	subscribers, err := d.lister.ListAll()
+	subscribers, err := d.store.All()
 	if err != nil {
 		return err
 	}

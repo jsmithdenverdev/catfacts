@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/xml"
-	"fmt"
 	"net/http"
 )
 
@@ -11,14 +10,10 @@ type Response struct {
 }
 
 func WriteTwimlResponse(w http.ResponseWriter, message string) error {
-	response := Response{
-		message,
-	}
-
-	x, err := xml.MarshalIndent(response, "", "  ")
+	x, err := GenerateTwiml(message)
 
 	if err != nil {
-		return fmt.Errorf("could not create twiml response: %w", err)
+		return err
 	}
 
 	w.Header().Set("Content-Type", "text/xml")
@@ -30,4 +25,12 @@ func WriteTwimlResponse(w http.ResponseWriter, message string) error {
 	}
 
 	return nil
+}
+
+func GenerateTwiml(message string) ([]byte, error) {
+	response := Response{
+		message,
+	}
+
+	return xml.MarshalIndent(response, "", "  ")
 }

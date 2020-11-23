@@ -18,6 +18,10 @@ func NewSmsSender(sid, token, from string) SmsSender {
 func (s SmsSender) Send(to, message string) error {
 	_, ex, err := s.client.SendSMS(s.from, to, message, "", "")
 	if ex != nil {
+		// this error is returned if a message is accidentally sent to an unsubscribed party
+		if ex.Code == 21211 {
+			return nil
+		}
 		return ex
 	}
 
