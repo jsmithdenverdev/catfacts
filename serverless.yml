@@ -1,0 +1,63 @@
+service: catfacts
+frameworkVersion: '>=1.28.0 <2.0.0'
+
+provider:
+  name: aws
+  runtime: go1.x
+  region: ${opt:region, 'us-west-2'}
+  stage: ${opt:stage, 'dev'}
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:Query"
+        - "dynamodb:Scan"
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:DeleteItem"
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}*"
+    - Effect: "Allow"
+      Action:
+        - "ssm:GetParameter"
+      Resource: "arn:aws:ssm:${self:provider.region}:*:parameter/twilio/auth"
+
+package:
+  exclude:
+    - ./**
+  include:
+    - ./bin/**
+
+functions:
+  sendfact:
+    handler: bin/sendfact
+    events:
+      - schedule: rate(1 day)
+    environment:
+      TWILIO_FROM: ${ssm:/twilio/from}
+      TWILIO_SID: ${ssm:/twilio/sid~true}
+      TWILIO_TOKEN: ${ssm:/twilio/token~true}
+
+  subscription:
+    handler: bin/subscription
+    events:
+      - http:
+          path: /v1/subscription
+          method: post
+
+resources:
+  Resources:
+    SubscriptionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: contact
+            AttributeType: S
+        KeySchema:
+          - AttributeName: contact
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1

@@ -1,14 +1,48 @@
-package fact
+package catfacts
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
-func RetrieveFactFromCatfactNinja() (fact string, err error) {
+type Fact = string
+
+type FactRetriever = func() (Fact, error)
+
+func DistributeFactToSubscribers(service SubscriptionService, distributor Distributor, retriever FactRetriever) error {
+	errs := make([]error, 0)
+	fact, err := retriever()
+
+	subscribers, err := service.All()
+	if err != nil {
+		return err
+	}
+
+	for _, sub := range subscribers {
+		err := distributor.Distribute(sub.Contact, fact)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		builder := strings.Builder{}
+		for _, err := range errs {
+			builder.WriteString(err.Error())
+		}
+
+		return errors.New(builder.String())
+	}
+
+	return nil
+}
+
+func RetrieveFactFromCatfactNinja() (fact Fact, err error) {
 	url := "https://catfact.ninja/fact"
 	res, err := http.Get(url)
 
