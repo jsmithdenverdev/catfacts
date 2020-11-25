@@ -1,5 +1,4 @@
 service: catfacts
-frameworkVersion: '>=1.28.0 <2.0.0'
 
 provider:
   name: aws
@@ -30,6 +29,20 @@ package:
     - ./bin/**
 
 functions:
+  authorize:
+    handler: bin/authorize
+
+  subscription:
+    handler: bin/subscription
+    events:
+      - http:
+          path: /v1/subscription
+          method: post
+          authorizer:
+            name: authorize
+            identitySource: method.request.header.Authorization
+            type: request
+
   sendfact:
     handler: bin/sendfact
     events:
@@ -39,17 +52,12 @@ functions:
       TWILIO_SID: ${ssm:/twilio/sid~true}
       TWILIO_TOKEN: ${ssm:/twilio/token~true}
 
-  subscription:
-    handler: bin/subscription
-    events:
-      - http:
-          path: /v1/subscription
-          method: post
+  
 
 resources:
   Resources:
     SubscriptionTable:
-      Type: AWS::DynamoDB::Table
+      Type: 'AWS::DynamoDB::Table'
       Properties:
         TableName: ${self:provider.environment.DYNAMODB_TABLE}
         AttributeDefinitions:
@@ -61,3 +69,13 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    GatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.WWW-Authenticate: "'Basic realm=\"Cat facts\"'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+
