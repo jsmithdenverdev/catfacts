@@ -1,0 +1,23 @@
+{
+  "name": "catfacts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "sls deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsmithdenverdev/catfacts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jsmithdenverdev/catfacts/issues"
+  },
+  "homepage": "https://github.com/jsmithdenverdev/catfacts#readme",
+  "dependencies": {
+    "serverless": "^2.12.0"
+  }
+}
