@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: catfacts
+Globals:
+  Function:
+    Timeout: 5
+Resources:
+  CatFactsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      GatewayResponses:
+        DEFAULT_5xx:
+          StatusCode: 200
+          ResponseTemplates:
+            "text/xml": "<Response><Message><Body>😾 $#*! Something went wrong! Server Cat is working on fixing it now (and boy is he pissed).</Body></Message></Response>"
+  TwilioCallbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/lambda/twilio_callback/
+      Handler: twilio_callback
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /twilio-callback
+            Method: POST
+            RestApiId: !Ref CatFactsApi
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Select [1, !Split ["/", !GetAtt SubscriptionTable.Arn]]
+      Environment:
+        Variables:
+          TABLE_NAME: !Select [1, !Split ["/", !GetAtt SubscriptionTable.Arn]]
+  SendFactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/lambda/send_fact/
+      Handler: send_fact
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: "cron(0 19 * * ? *)"
+            Name: Daily
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Select [1, !Split ["/", !GetAtt SubscriptionTable.Arn]]
+      Environment:
+        Variables:
+          TABLE_NAME: !Select [1, !Split ["/", !GetAtt SubscriptionTable.Arn]]
+  SubscriptionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: contact
+          AttributeType: S
+      KeySchema:
+        - AttributeName: contact
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+Outputs:
+  TwilioCallbackAPI:
+    Description: "API Gateway endpoint URL for Prod environment for TwilioCallbackFunction"
+    Value: !Sub "https://${CatFactsApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/twilio-callback/"
+  TwilioCallbackFunction:
+    Description: "TwilioCallbackFunction ARN"
+    Value: !GetAtt TwilioCallbackFunction.Arn
+  TwilioCallbackFunctionIamRole:
+    Description: "Implicit IAM Role created for TwilioCallbackFunction"
+    Value: !GetAtt TwilioCallbackFunctionRole.Arn
