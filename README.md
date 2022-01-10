@@ -8,7 +8,7 @@ The project is structured as a single Go module with several packages. Executabl
 
 -  `catfactninja` provides a client used to fetch facts from an API.
 -  `dynamodb` provides DynamoDB storage capabilities.
--  `lambda` provides lambda handlers, helpers and middleware.
+-  `lambda` provides Lambda handlers, helpers and middleware.
 -  `twilio` provides a client to send SMS with twilio, as well as the capability to marshal strings into Twiml.
 
 Structuring the application this way allows our types to semantically represent themselves. It becomes obvious which types belong to which domain (e.g. `catfacts.Subscription` or `dynamodb.SubscriptionStore`). Each package acts as a thin integration layer between our core domain and a particular service or concept. 
@@ -26,7 +26,7 @@ This structure was heavily inspired by Ben Johnson's articles. Particularly [Pac
 ├── cmd                     # Executables.
 │   └── lambda
 │       ├── send_fact       
-│       │   └── main.go     # send_fact lambda entrypoint.
+│       │   └── main.go     # send_fact Lambda entrypoint.
 │       └── twilio_callback
 │           └── main.go     # twilio_callback lambda entrypoint.
 │
@@ -54,3 +54,17 @@ This structure was heavily inspired by Ben Johnson's articles. Particularly [Pac
 ├── sms.go                  # SMS domain type and functions.
 └── subscriptions.go        # Subscription domain type and functions.
  ```
+ 
+ ## Functions
+ 
+ ### twilio_callback
+
+twilio_callback is an HTTP triggered Lambda function. The function URL is configured as a Twilio webhook and is sent a payload when a text message is sent to the CatFacts phone number. The function does rudimentary parsing of the request, and determines if the user is subscribing, unsubscribing, needs help or the request cannot be understood. The function then takes the appropriate action (e.g. deleting a users phone number from the subscription table in Dynamo) before sending a response. 
+ 
+ ### send_fact
+ 
+ send_fact is a time triggered Lambda function that runs once a day. The function fetches a random fact from the catfact ninja api, loads a list of subscribers from DynamoDB and attempts to send each subscription the fact.
+ 
+ ## Additional services
+ 
+ [CatFactNinja](https://catfact.ninja/)
