@@ -3,6 +3,7 @@ package lambda
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jsmithdenverdev/catfacts"
@@ -32,7 +33,7 @@ func (handler SendFactHandler) Handle(ctx context.Context, event events.CloudWat
 			Body: fmt.Sprintf("%s %s", catfacts.SMSBodyFact, fact),
 			To:   subscription.Contact,
 		}); err != nil {
-			return err
+			log.Printf("could not send fact: %s\n", err.Error())
 		}
 	}
 
