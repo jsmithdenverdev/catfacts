@@ -1,6 +1,6 @@
 module github.com/jsmithdenverdev/catfacts
 
-go 1.17
+go 1.18
 
 require (
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.4.1
@@ -24,6 +24,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.6.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.10.1 // indirect
 	github.com/aws/smithy-go v1.9.0 // indirect
+	github.com/chuckpreslar/emission v0.0.0-20170206194824-a7ddd980baf9 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect

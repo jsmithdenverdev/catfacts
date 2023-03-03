@@ -1,25 +1,15 @@
 package catfacts
 
-import "strings"
+import (
+	"github.com/chuckpreslar/emission"
+	"strings"
+)
 
 type SMS struct {
 	To   string
 	From string
 	Body string
 }
-
-type SMSSender interface {
-	Send(sms SMS) error
-}
-
-type SMSCommand int
-
-const (
-	CommandSubscribe SMSCommand = iota
-	CommandUnsubscribe
-	CommandHelp
-	CommandCuss
-)
 
 const (
 	SMSBodyWelcome = "😸 Meow! Welcome to CatFacts! You'll be texted a random fact once a day! Reply STOP at any time to unsubscribe."
@@ -30,25 +20,24 @@ const (
 	SMSBodyFact    = "😺 Here's your daily fact. "
 )
 
-func (sms SMS) ToCommand() SMSCommand {
-	var commandMap map[SMSCommand][]string = map[SMSCommand][]string{
-		CommandSubscribe:   {"start", "subscribe", "unstop"},
-		CommandUnsubscribe: {"stop", "stopall", "unsubscribe", "end", "quit"},
-		CommandHelp:        {"help", "info"},
-		CommandCuss:        {"cuss"},
-	}
+func HandleSMS(emitter *emission.Emitter) func(request SMS) {
+	return func(request SMS) {
+		var requestMap = map[any][]string{
+			CommandSubscribe:   {"start", "subscribe", "unstop"},
+			CommandUnsubscribe: {"stop", "stopall", "unsubscribe", "end", "quit"},
+			CommandCuss:        {"cuss"},
+			QueryHelp:          {"help", "info"},
+		}
 
-	check := strings.ToLower(sms.Body)
-	check = strings.TrimSpace(check)
+		check := strings.ToLower(request.Body)
+		check = strings.TrimSpace(check)
 
-	for command, keywords := range commandMap {
-
-		for _, keyword := range keywords {
-			if check == keyword {
-				return command
+		for match, keywords := range requestMap {
+			for _, keyword := range keywords {
+				if check == keyword {
+					emitter.Emit(match, request)
+				}
 			}
 		}
 	}
-
-	return CommandHelp
 }
