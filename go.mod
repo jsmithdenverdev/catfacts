@@ -1,6 +1,6 @@
 module github.com/jsmithdenverdev/catfacts
 
-go 1.18
+go 1.20
 
 require (
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.4.1
